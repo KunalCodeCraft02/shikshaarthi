@@ -251,6 +251,10 @@ exports.verifyOTPAndRegister = async (req, res) => {
         if (!mongoose.isValidObjectId(tempUserId)) {
             return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid verification session' });
         }
+        const normalizedOTP = String(otp).trim();
+        if (!/^\d{6}$/.test(normalizedOTP)) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Verification code must be 6 digits' });
+        }
 
         if (!isDbConnected()) {
             return res.status(StatusCodes.SERVICE_UNAVAILABLE).json({ error: 'Service temporarily unavailable' });
@@ -266,10 +270,19 @@ exports.verifyOTPAndRegister = async (req, res) => {
             return res.status(StatusCodes.TOO_MANY_REQUESTS).json({ error: 'Too many failed attempts' });
         }
 
-        const isValidOTP = await OTPService.verifyOTP(tempUser.email, otp, 'registration');
+        const storedOTP = await db.collection('otps').findOne({
+            email: tempUser.email,
+            type: 'registration'
+        });
+        if (storedOTP && storedOTP.expiresAt <= new Date()) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Verification code expired. Please request a new code.' });
+        }
+
+        const isValidOTP = await OTPService.verifyOTP(tempUser.email, normalizedOTP, 'registration');
         if (!isValidOTP) {
             await db.collection('tempusers').updateOne({ _id: tempUser._id }, { $inc: { otpAttempts: 1 } });
             const attemptsLeft = 3 - (tempUser.otpAttempts + 1);
+            logger.warn(`[AuthService] Invalid registration OTP attempt for session ${tempUserId}; attempts remaining: ${attemptsLeft}`);
             return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid verification code', attemptsLeft });
         }
 
@@ -1931,8 +1944,6 @@ exports.getCoinRedemptionHistory = async (req, res) => {
     }
   };
   
-
-
 
 
 

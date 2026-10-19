@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { ErrorBoundary } from "./ErrorBoundary";
@@ -15,6 +15,7 @@ const OTPVerification = ({ email, tempUserId, onSuccess, onBack, type = "registr
     verifying: false,
     resending: false
   });
+  const verificationInFlight = useRef(false);
 
   // Resend cooldown timer
   useEffect(() => {
@@ -27,6 +28,10 @@ const OTPVerification = ({ email, tempUserId, onSuccess, onBack, type = "registr
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
 
+    if (verificationInFlight.current) {
+      return;
+    }
+
     if (!otp || otp.length !== 6) {
       toast.error("Please enter a valid 6-digit verification code");
       return;
@@ -37,22 +42,27 @@ const OTPVerification = ({ email, tempUserId, onSuccess, onBack, type = "registr
       return;
     }
 
+    verificationInFlight.current = true;
     setLoading(prev => ({ ...prev, verifying: true }));
 
     try {
-      const response = await axios.post(`${backendUrl}/api/auth/verify-otp`, {
-        tempUserId,
-        otp: otp.trim(),
-        type
-      });
+      const response = await axios.post(
+        `${backendUrl}/api/auth/verify-otp`,
+        { tempUserId, otp: otp.trim(), type },
+        { timeout: 35000 }
+      );
 
-      if (response.data.success) {
+      if (response.data?.success && response.data?.token && response.data?.user) {
         onSuccess(response.data.token, response.data.user);
+        return;
       }
 
+      toast.error("Verification failed: invalid server response. Please try again.");
     } catch (error) {
       const errorData = error.response?.data;
-      const errorMessage = errorData?.error || "Verification failed";
+      const errorMessage = error.code === "ECONNABORTED"
+        ? "Verification timed out. Please try again."
+        : errorData?.error || errorData?.message || "Verification failed. Please try again.";
       
       toast.error(errorMessage);
       
@@ -68,6 +78,7 @@ const OTPVerification = ({ email, tempUserId, onSuccess, onBack, type = "registr
         }
       }
     } finally {
+      verificationInFlight.current = false;
       setLoading(prev => ({ ...prev, verifying: false }));
     }
   };

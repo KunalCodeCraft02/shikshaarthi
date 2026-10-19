@@ -7,7 +7,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const { createProxyMiddleware } = require('http-proxy-middleware');
+const { createProxyMiddleware, fixRequestBody } = require('http-proxy-middleware');
 const { authenticateRequest } = require('./middleware/auth.middleware');
 
 const app = express();
@@ -125,13 +125,9 @@ const createProxyOptions = (target, serviceName) => ({
       proxyReq.setHeader('authorization', req.headers.authorization);
     }
 
-    // Handle JSON body for POST/PUT requests
-    if (req.body && Object.keys(req.body).length > 0) {
-      const bodyData = JSON.stringify(req.body);
-      proxyReq.setHeader('Content-Type', 'application/json');
-      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-      proxyReq.write(bodyData);
-    }
+    // express.json() consumes the request stream before the proxy sees it.
+    // Re-stream the parsed body so POST/PUT/PATCH requests reach the service.
+    fixRequestBody(proxyReq, req);
   },
   
   onProxyRes: (proxyRes, req, res) => {
