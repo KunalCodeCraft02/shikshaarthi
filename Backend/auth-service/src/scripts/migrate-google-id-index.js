@@ -30,6 +30,18 @@ const migrate = async () => {
   const indexes = await collection.indexes();
   const current = indexes.find(index => index.name === INDEX_NAME);
 
+  if (current) {
+    console.log('[GoogleIdMigration] Current index:', JSON.stringify({
+      name: current.name,
+      key: current.key,
+      unique: current.unique === true,
+      sparse: current.sparse === true,
+      partialFilterExpression: current.partialFilterExpression || null
+    }));
+  } else {
+    console.log(`[GoogleIdMigration] ${INDEX_NAME} does not exist.`);
+  }
+
   if (
     current &&
     current.unique === true &&
