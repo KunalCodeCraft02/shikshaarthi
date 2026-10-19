@@ -1,0 +1,26 @@
+{
+  "name": "backend-monorepo-runner",
+  "version": "1.0.0",
+  "description": "A runner for the Shikshaarthi backend microservices",
+  "private": true,
+  "scripts": {
+    "dev:gateway": "npm --prefix api-gateway run dev",
+    "dev:auth": "npm --prefix auth-service run dev",
+    "dev:rewards": "npm --prefix rewards-service run dev",
+    "dev:rental": "npm --prefix rental-service run dev",
+    "dev:mess": "npm --prefix mess-service run dev",
+    "dev:medical": "npm --prefix medical-service run dev",
+    "dev:plumber": "npm --prefix plumber-service run dev",
+    "dev:electrician": "npm --prefix electrician-service run dev",
+    "dev:laundry": "npm --prefix laundry-service run dev",
+    "dev": "concurrently \"npm:dev:*\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "helmet": "^8.1.0",
+    "mongodb": "^6.17.0",
+    "mongoose": "^8.16.3"
+  }
+}

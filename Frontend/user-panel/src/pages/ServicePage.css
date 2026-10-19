@@ -1,0 +1,539 @@
+/* --- FONT IMPORT --- */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap');
+
+/* --- GLOBAL THEME & ANIMATIONS --- */
+:root {
+    --primary-color: #d4a762;
+    --dark-color: #121212;
+    --light-color: #ffffff;
+    --text-muted-color: rgba(255, 255, 255, 0.7);
+    --border-color: #222;
+    --header-bg-image: url('https://images.unsplash.com/photo-1616046229478-9901c5536a45?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes underline {
+    from { width: 0; }
+    to { width: 40px; }
+}
+
+/* --- LAYOUT COMPONENTS --- */
+.services-page {
+    background-color: var(--dark-color);
+    font-family: 'Lato', sans-serif;
+}
+
+.services-header {
+    /* Mobile-first padding: Less vertical space on phones */
+    padding: 4rem 1rem;
+    text-align: center;
+    color: var(--light-color);
+    background: linear-gradient(rgba(18, 18, 18, 0.9), rgba(18, 18, 18, 0.7)), var(--header-bg-image);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+.page-title {
+    /* Fluid font size, comfortable on mobile */
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: var(--light-color);
+    text-shadow: 0 2px 15px rgba(0,0,0,0.5);
+}
+
+.page-title::after {
+    content: ''; display: block; width: 0; height: 3px;
+    background: var(--primary-color); margin: 0.75rem auto 0;
+    animation: underline 0.8s ease-out forwards; animation-delay: 0.3s;
+}
+
+.lead-text {
+    font-size: 1rem;
+    font-weight: 300;
+    color: var(--text-muted-color);
+    max-width: 600px;
+    margin: 0 auto 2rem auto;
+}
+
+.header-controls {
+    display: inline-flex; padding: 0.4rem; border-radius: 12px;
+    background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.services-content-area {
+    max-width: 1200px;
+    margin: 0 auto;
+    /* Reduced padding for mobile */
+    padding: 2.5rem 1rem;
+}
+
+/* --- SHARED COMPONENTS --- */
+
+.radius-btn {
+    background-color: transparent; border: none; color: var(--text-muted-color);
+    padding: 0.6rem 1.25rem; /* Good touch target for mobile */
+    border-radius: 8px; font-size: 0.9rem; font-weight: 400;
+    cursor: pointer; transition: all 0.3s ease;
+}
+.radius-btn:hover:not(.active) { background-color: rgba(255, 255, 255, 0.1); color: var(--light-color); }
+.radius-btn.active { background-color: var(--primary-color); color: var(--dark-color); font-weight: 700; box-shadow: 0 0 20px rgba(212, 167, 98, 0.5); }
+.radius-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+
+/* Room Card */
+.grid-container {
+    display: grid;
+    /* Single column on mobile by default */
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+.room-card {
+    background-color: var(--dark-color); border-radius: 16px; overflow: hidden;
+    display: flex; flex-direction: column; border: 1px solid var(--border-color);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+    animation: fadeIn 0.6s ease-out forwards;
+}
+.room-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.5); border-color: var(--primary-color); }
+.room-card .image-wrapper { height: 220px; overflow: hidden; }
+.room-card .room-image { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+.room-card:hover .room-image { transform: scale(1.05); }
+.room-card .card-body { padding: 1.25rem; flex-grow: 1; display: flex; flex-direction: column; }
+.room-card .card-title { font-size: 1.25rem; font-weight: 700; color: var(--light-color); margin: 0 0 0.5rem 0; flex-grow: 1; }
+.room-card .details-container { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 1rem; }
+.room-card .price { font-size: 1.4rem; font-weight: 700; color: var(--primary-color); line-height: 1.2; }
+.room-card .price-label { font-weight: 300; color: var(--text-muted-color); font-size: 0.8rem; display: block; }
+.room-card .price-period { font-size: 0.85rem; font-weight: 300; color: var(--text-muted-color); margin-left: 0.25rem; }
+.room-card .view-offer-button {
+    background-color: var(--primary-color); color: var(--dark-color);
+    padding: 0.75rem 1.2rem; /* Generous padding for touch */
+    border-radius: 8px; text-decoration: none; font-size: 0.9rem; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    transition: all 0.3s ease; border: 2px solid var(--primary-color);
+}
+.room-card .view-offer-button:hover { background-color: var(--light-color); border-color: var(--light-color); }
+.room-card .view-offer-button .button-icon { transition: transform 0.3s ease; }
+.room-card .view-offer-button:hover .button-icon { transform: translateX(4px); }
+
+/* Loading and Info States */
+.loader-container { display: flex; justify-content: center; padding: 5rem 0; }
+.spinner { width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.2); border-top-color: var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
+.info-message { text-align: center; padding: 3rem 1.5rem; background-color: rgba(0,0,0,0.2); border-radius: 16px; font-size: 1rem; color: var(--text-muted-color); border: 1px solid var(--primary-color); }
+
+/* --- SINGLE ROOM PAGE STYLES --- */
+.single-room-container {
+    display: flex;
+    /* Stacks columns on mobile by default */
+    flex-direction: column;
+    gap: 2rem;
+    color: var(--light-color);
+}
+.image-gallery { flex: 1; animation: fadeIn 0.6s ease-out; }
+.main-image {
+    width: 100%;
+    /* Aspect ratio is much better for responsiveness than fixed height */
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    margin-bottom: 1rem;
+}
+.thumbnail-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 0.75rem; }
+.thumbnail-image { width: 100%; height: 65px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid transparent; opacity: 0.6; transition: all 0.3s ease; }
+.thumbnail-image:hover { opacity: 1; transform: scale(1.05); }
+.thumbnail-image.active { opacity: 1; border-color: var(--primary-color); box-shadow: 0 0 15px rgba(212, 167, 98, 0.5); }
+
+.room-details { flex: 1; display: flex; flex-direction: column; }
+.room-title { font-size: clamp(1.7rem, 5vw, 2.4rem); font-weight: 700; margin-bottom: 0.5rem; line-height: 1.2;color:white}
+.room-location { font-size: 0.95rem; font-weight: 300; color: var(--text-muted-color); margin-bottom: 1.5rem; }
+.room-location i { color: var(--primary-color); margin-right: 0.5rem; }
+.price-display { background-color: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+.details-section { margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; }
+.details-section:last-child { border-bottom: none; padding-bottom: 0; }
+.section-title { font-size: 0.9rem; font-weight: 700; color: var(--primary-color); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.section-content { font-size: 0.95rem; font-weight: 300; color: var(--text-muted-color); line-height: 1.6; }
+.details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; }
+.detail-item { display: flex; flex-direction: column; }
+.detail-item span { font-size: 0.8rem; font-weight: 300; color: var(--text-muted-color); margin-bottom: 0.25rem; }
+.detail-item strong { font-size: 1rem; font-weight: 400; color: var(--light-color); }
+
+.action-button {
+    background-color: var(--primary-color); color: var(--dark-color);
+    padding: 1rem 1.5rem; /* Large and easy to tap */
+    border-radius: 8px; text-decoration: none; font-size: 1rem; font-weight: 700;
+    text-align: center; width: 100%; margin-top: 1.5rem;
+    border: 2px solid var(--primary-color); transition: all 0.3s ease; cursor: pointer;
+}
+.action-button:hover { background-color: var(--light-color); border-color: var(--light-color); transform: translateY(-3px); box-shadow: 0 4px 15px rgba(212, 167, 98, 0.3); }
+.action-button i { margin-left: 0.5rem; transition: transform 0.3s ease; }
+.action-button:hover i { transform: translateX(5px); }
+
+
+/* --- TABLET & DESKTOP ENHANCEMENTS --- */
+@media (min-width: 768px) {
+    .services-header {
+        /* Increase header padding on larger screens */
+        padding: 6rem 1rem;
+    }
+    .services-content-area {
+        /* Increase content padding */
+        padding: 4rem 1rem;
+    }
+    .lead-text {
+        font-size: 1.1rem;
+    }
+    .grid-container {
+        /* Switch to 2-column grid on tablets */
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .single-room-container {
+        /* Side-by-side layout on tablets and up */
+        flex-direction: row;
+        gap: 3rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .grid-container {
+        /* Switch to 3-column grid on desktops */
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+
+
+
+/* --- Add or replace these styles at the bottom of your CSS file --- */
+
+/* --- RENTAL ORDER PAGE STYLES (FORMAL) --- */
+
+.order-container {
+    max-width: 700px;
+    margin: 0 auto;
+    color: var(--light-color);
+}
+
+.order-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.order-header .page-title {
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
+}
+
+.order-header .page-title::after {
+    display: none; /* Hide underline on this page for a cleaner look */
+}
+
+.order-header .lead-text {
+    font-size: 1rem;
+    font-weight: 300;
+    max-width: 450px;
+}
+
+.order-card {
+    background-color: transparent; /* Cleaner background */
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    animation: fadeIn 0.6s ease-out;
+}
+
+.order-card-header {
+    padding: 1rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.order-card-body {
+    padding: 1.5rem;
+}
+
+.order-room-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--light-color);
+    margin: 0;
+}
+
+.order-room-location {
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: var(--text-muted-color);
+    margin: 0.25rem 0 1rem 0;
+}
+
+.order-room-price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* Formal Grid Layout for Details */
+.formal-details-grid {
+    display: grid;
+    gap: 1.5rem 1rem; /* Row and column gap */
+}
+
+.owner-detail-row {
+    display: flex;
+    flex-direction: column;
+}
+
+.owner-detail-row span {
+    font-size: 0.85rem;
+    font-weight: 300;
+    color: var(--text-muted-color);
+    margin-bottom: 0.25rem;
+}
+
+.owner-detail-row strong {
+    font-size: 1rem;
+    font-weight: 400; /* Less aggressive bolding */
+    color: var(--light-color);
+    letter-spacing: 0.5px;
+}
+
+.action-button-group {
+    display: flex;
+    flex-direction: column; /* Stack buttons on mobile */
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.contact-btn {
+    padding: 0.9rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.contact-btn.primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--dark-color);
+}
+
+.contact-btn.primary:hover {
+    background-color: var(--light-color);
+    border-color: var(--light-color);
+    transform: translateY(-2px);
+}
+
+.contact-btn.secondary {
+    background-color: transparent;
+    border-color: var(--border-color);
+    color: var(--text-muted-color);
+}
+
+.contact-btn.secondary:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Formal Note/Disclaimer Styling */
+.important-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.important-note i {
+    font-size: 1rem;
+    color: var(--text-muted-color);
+    margin-top: 0.2rem;
+}
+
+.important-note p {
+    margin: 0;
+    color: var(--text-muted-color);
+    line-height: 1.6;
+    font-weight: 300;
+}
+.important-note p strong {
+    color: var(--light-color);
+    font-weight: 400;
+}
+
+.back-to-rooms-btn {
+    background: none; border: none;
+    color: var(--text-muted-color);
+    font-size: 0.9rem; cursor: pointer;
+    transition: color 0.3s ease;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+}
+.back-to-rooms-btn:hover { color: var(--primary-color); }
+
+
+/* --- TABLET & DESKTOP ENHANCEMENTS FOR ORDER PAGE --- */
+@media (min-width: 576px) {
+    /* Side-by-side action buttons on slightly larger screens */
+    .action-button-group {
+        flex-direction: row;
+    }
+    .contact-btn {
+        flex: 1; /* Make buttons equal width */
+    }
+}
+
+@media (min-width: 768px) {
+    /* Formal two-column grid for details on desktop */
+    .formal-details-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+
+/* --- Add these new styles to the bottom of your existing CSS file --- */
+
+/* --- RENTAL ORDER PAGE STYLES (FORMAL) --- */
+
+.formal-contact-container {
+    max-width: 500px;
+    margin: 0 auto;
+    color: var(--light-color);
+}
+
+.formal-contact-card {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    animation: fadeIn 0.6s ease-out;
+}
+
+.card-title-formal {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin: 0;
+}
+
+.card-intro-text {
+    font-size: 0.95rem;
+    font-weight: 300;
+    color: var(--text-muted-color);
+    margin: 0.5rem 0 2rem 0;
+}
+
+.contact-details-wrapper {
+    display: grid;
+    gap: 1.5rem;
+    text-align: left;
+    margin-bottom: 2.5rem;
+}
+
+.contact-detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.contact-detail-item span {
+    font-size: 0.85rem;
+    font-weight: 300;
+    color: var(--text-muted-color);
+    margin-bottom: 0.25rem;
+}
+
+.contact-detail-item strong {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--light-color);
+    letter-spacing: 0.5px;
+}
+
+.action-button-group {
+    display: grid; /* Use grid for easy stacking */
+    gap: 1rem;
+}
+
+.contact-btn {
+    padding: 0.9rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.contact-btn.primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--dark-color);
+}
+
+.contact-btn.primary:hover {
+    background-color: var(--light-color);
+    border-color: var(--light-color);
+    transform: translateY(-2px);
+}
+
+.contact-btn.secondary {
+    background-color: transparent;
+    border-color: var(--border-color);
+    color: var(--text-muted-color);
+}
+
+.contact-btn.secondary:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.back-to-rooms-btn {
+    background: none; border: none;
+    color: var(--text-muted-color);
+    font-size: 0.9rem;
+    font-weight: 300;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+}
+.back-to-rooms-btn:hover {
+    color: var(--primary-color);
+}
+
+/* Responsive adjustments for the formal card */
+@media (min-width: 500px) {
+    .formal-contact-card {
+        padding: 2.5rem;
+    }
+    .action-button-group {
+        /* Side-by-side buttons on larger screens */
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    }
+}

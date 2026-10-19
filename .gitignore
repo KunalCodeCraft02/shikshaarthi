@@ -1,0 +1,23 @@
+# Dependencies
+**/node_modules/
+
+# Environment files and secrets
+.env
+.env.*
+**/*.env
+**/*.env.*
+
+# Build output
+**/dist/
+**/build/
+
+# Logs and local tooling
+*.log
+npm-debug.log*
+.vscode/
+.idea/
+
+# Local archives and deployment artifacts
+*.zip
+*.tar
+*.tar.gz

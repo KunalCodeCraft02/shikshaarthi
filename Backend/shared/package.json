@@ -1,0 +1,27 @@
+{
+  "name": "@shikshaarthi/shared",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shared libraries, connectors, and error handlers for all Shikshaarthi backend services.",
+  "main": "index.js",
+  "files": [
+    "database",
+    "errors",
+    "kafka",
+    "middleware",
+    "utils",
+    "index.js"
+  ],
+  "scripts": {
+    "test": "echo \"No tests specified for shared library\" && exit 0"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "joi": "^17.13.3",
+    "kafkajs": "^2.2.4",
+    "mongoose": "^8.16.0",
+    "winston": "^3.17.0"
+  },
+  "author": "Shikshaarthi Team",
+  "license": "ISC"
+}
