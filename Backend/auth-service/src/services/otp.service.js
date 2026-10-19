@@ -1,6 +1,7 @@
 // auth-service/src/services/otp.service.js (FIXED VERSION)
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const mongoose = require('mongoose');
 const { getDb } = require('../shared/libs/database/mongo-connector');
 const config = require('../config');
 
@@ -115,8 +116,8 @@ const sendOTPEmail = async (email, otp, type = 'verification') => {
  * @param {string} type - OTP type ('verification' or 'reset')
  * @param {number} expiresInMinutes - Expiration time in minutes
  */
-const storeOTP = async (email, otp, type = 'verification', expiresInMinutes = 10) => {
-  const db = getDb();
+const storeOTP = async (email, otp, type = 'registration', expiresInMinutes = 10) => {
+  const db = getDb() || mongoose.connection.db;
   const expiryTime = new Date();
   expiryTime.setMinutes(expiryTime.getMinutes() + expiresInMinutes);
   
@@ -173,7 +174,7 @@ const storeOTP = async (email, otp, type = 'verification', expiresInMinutes = 10
  * @param {string} type - OTP type ('verification' or 'reset')
  * @returns {Promise<boolean>} - Success status
  */
-const generateAndSendOTP = async (email, type = 'verification') => {
+const generateAndSendOTP = async (email, type = 'registration') => {
   try {
     const otp = generateOTP();
     await storeOTP(email, otp, type);
@@ -199,15 +200,16 @@ const generateAndSendOTP = async (email, type = 'verification') => {
  * @param {string} type - OTP type ('verification' or 'reset')
  * @returns {Promise<boolean>} - Whether OTP is valid
  */
-const verifyOTP = async (email, userProvidedOTP, type = 'verification') => {
+const verifyOTP = async (email, userProvidedOTP, type = 'registration') => {
   if (!email || !userProvidedOTP) {
     console.log('Missing email or OTP for verification');
     return false;
   }
   
   const normalizedEmail = email.toLowerCase();
+  const normalizedOTP = String(userProvidedOTP).trim();
   const cacheKey = `${normalizedEmail}:${type}`;
-  const db = getDb();
+  const db = getDb() || mongoose.connection.db;
   
   try {
     // Try database first
@@ -218,7 +220,7 @@ const verifyOTP = async (email, userProvidedOTP, type = 'verification') => {
         expiresAt: { $gt: new Date() }
       });
       
-      if (otpRecord && otpRecord.otp === userProvidedOTP) {
+      if (otpRecord && otpRecord.otp === normalizedOTP) {
         // Remove the used OTP
         await db.collection(OTP_COLLECTION).deleteOne({ _id: otpRecord._id });
         // Also remove from cache
@@ -230,8 +232,8 @@ const verifyOTP = async (email, userProvidedOTP, type = 'verification') => {
     
     // Fallback to cache check
     const cachedOtp = otpCache.get(cacheKey);
-    if (cachedOtp && 
-        cachedOtp.otp === userProvidedOTP && 
+    if (cachedOtp &&
+        cachedOtp.otp === normalizedOTP &&
         cachedOtp.expiresAt > new Date()) {
       otpCache.delete(cacheKey);
       console.log(`OTP verified from cache for ${email} (${type})`);
@@ -245,8 +247,8 @@ const verifyOTP = async (email, userProvidedOTP, type = 'verification') => {
     
     // Final fallback to cache-only check
     const cachedOtp = otpCache.get(cacheKey);
-    if (cachedOtp && 
-        cachedOtp.otp === userProvidedOTP && 
+    if (cachedOtp &&
+        cachedOtp.otp === normalizedOTP &&
         cachedOtp.expiresAt > new Date()) {
       otpCache.delete(cacheKey);
       console.log(`OTP verified from cache (fallback) for ${email} (${type})`);

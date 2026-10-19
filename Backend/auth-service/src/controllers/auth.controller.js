@@ -152,7 +152,7 @@ exports.sendVerificationOTP = async (req, res) => {
         const result = await db.collection('tempusers').insertOne(tempUserData);
         tempUserData._id = result.insertedId;
 
-        const otpSent = await OTPService.generateAndSendOTP(email);
+        const otpSent = await OTPService.generateAndSendOTP(email, 'registration');
         if (!otpSent) {
             await db.collection('tempusers').deleteOne({ _id: tempUserData._id });
             return res.status(500).json({ error: 'Failed to send verification code' });
@@ -248,6 +248,9 @@ exports.verifyOTPAndRegister = async (req, res) => {
         if (!tempUserId || !otp) {
             return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Temporary user ID and verification code are required' });
         }
+        if (!mongoose.isValidObjectId(tempUserId)) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid verification session' });
+        }
 
         if (!isDbConnected()) {
             return res.status(StatusCodes.SERVICE_UNAVAILABLE).json({ error: 'Service temporarily unavailable' });
@@ -263,7 +266,7 @@ exports.verifyOTPAndRegister = async (req, res) => {
             return res.status(StatusCodes.TOO_MANY_REQUESTS).json({ error: 'Too many failed attempts' });
         }
 
-        const isValidOTP = await OTPService.verifyOTP(tempUser.email, otp);
+        const isValidOTP = await OTPService.verifyOTP(tempUser.email, otp, 'registration');
         if (!isValidOTP) {
             await db.collection('tempusers').updateOne({ _id: tempUser._id }, { $inc: { otpAttempts: 1 } });
             const attemptsLeft = 3 - (tempUser.otpAttempts + 1);
@@ -356,7 +359,7 @@ exports.resendOTP = async (req, res) => {
             targetEmail = tempUser.email;
         }
 
-        const otpSent = await OTPService.generateAndSendOTP(targetEmail);
+        const otpSent = await OTPService.generateAndSendOTP(targetEmail, 'registration');
         if (!otpSent) {
             return res.status(500).json({ error: 'Failed to send verification code' });
         }
@@ -1928,8 +1931,6 @@ exports.getCoinRedemptionHistory = async (req, res) => {
     }
   };
   
-
-
 
 
 

@@ -90,10 +90,10 @@ const Footer = () => {
           </p>
           <p>
             Designed By{" "}
-            <a className="text-light border-bottom" href="https://www.linkedin.com/in/shivanisrichippa">
-              Shivanisri Chippa
-            </a>{" "}
-            | Telangana
+            <span className="text-light border-bottom">
+              Sushrut Deshmukh
+            </span>{" "}
+            | Kolhapur
           </p>
         </div>
       </div>
