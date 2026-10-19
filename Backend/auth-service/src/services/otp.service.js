@@ -200,7 +200,7 @@ const generateAndSendOTP = async (email, type = 'registration') => {
  * @param {string} type - OTP type ('verification' or 'reset')
  * @returns {Promise<boolean>} - Whether OTP is valid
  */
-const verifyOTP = async (email, userProvidedOTP, type = 'registration') => {
+const verifyOTP = async (email, userProvidedOTP, type = 'registration', consume = true) => {
   if (!email || !userProvidedOTP) {
     console.log('Missing email or OTP for verification');
     return false;
@@ -221,10 +221,10 @@ const verifyOTP = async (email, userProvidedOTP, type = 'registration') => {
       });
       
       if (otpRecord && otpRecord.otp === normalizedOTP) {
-        // Remove the used OTP
-        await db.collection(OTP_COLLECTION).deleteOne({ _id: otpRecord._id });
-        // Also remove from cache
-        otpCache.delete(cacheKey);
+        if (consume) {
+          await db.collection(OTP_COLLECTION).deleteOne({ _id: otpRecord._id });
+          otpCache.delete(cacheKey);
+        }
         console.log(`OTP verified successfully for ${email} (${type})`);
         return true;
       }
@@ -235,7 +235,9 @@ const verifyOTP = async (email, userProvidedOTP, type = 'registration') => {
     if (cachedOtp &&
         cachedOtp.otp === normalizedOTP &&
         cachedOtp.expiresAt > new Date()) {
-      otpCache.delete(cacheKey);
+      if (consume) {
+        otpCache.delete(cacheKey);
+      }
       console.log(`OTP verified from cache for ${email} (${type})`);
       return true;
     }
@@ -250,13 +252,43 @@ const verifyOTP = async (email, userProvidedOTP, type = 'registration') => {
     if (cachedOtp &&
         cachedOtp.otp === normalizedOTP &&
         cachedOtp.expiresAt > new Date()) {
-      otpCache.delete(cacheKey);
+      if (consume) {
+        otpCache.delete(cacheKey);
+      }
       console.log(`OTP verified from cache (fallback) for ${email} (${type})`);
       return true;
     }
     
     return false;
   }
+};
+
+const consumeOTP = async (email, userProvidedOTP, type = 'registration') => {
+  const normalizedEmail = email.toLowerCase();
+  const normalizedOTP = String(userProvidedOTP).trim();
+  const cacheKey = `${normalizedEmail}:${type}`;
+  const db = getDb() || mongoose.connection.db;
+
+  if (db) {
+    const result = await db.collection(OTP_COLLECTION).deleteOne({
+      email: normalizedEmail,
+      otp: normalizedOTP,
+      type,
+      expiresAt: { $gt: new Date() }
+    });
+    if (result.deletedCount === 1) {
+      otpCache.delete(cacheKey);
+      return true;
+    }
+  }
+
+  const cachedOtp = otpCache.get(cacheKey);
+  if (cachedOtp?.otp === normalizedOTP && cachedOtp.expiresAt > new Date()) {
+    otpCache.delete(cacheKey);
+    return true;
+  }
+
+  return false;
 };
 
 // Clean up expired OTPs from cache periodically
@@ -271,5 +303,6 @@ setInterval(() => {
 
 module.exports = {
   generateAndSendOTP,
-  verifyOTP
+  verifyOTP,
+  consumeOTP
 };

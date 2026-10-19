@@ -677,3 +677,25 @@ The builds still report existing non-blocking Vite warnings about legacy script 
 5. Razorpay, email, Cloudinary, LocationIQ, Kafka, and MongoDB production credentials still need to be supplied.
 6. Hardcoded fallback credentials in legacy source should be removed and rotated before production.
 7. The API Gateway required-variable list should include `LAUNDRY_SERVICE_URL` for stricter validation.
+
+## 17. Google ID index migration
+
+Email/password users do not have a `googleId`. The auth service defines `googleId_1`
+as a unique partial index that only includes string Google IDs. This prevents multiple
+email/password users from conflicting on `googleId: null` while preserving uniqueness
+for Google-authenticated accounts.
+
+On an existing VPS database, stop the auth service before running the targeted,
+repeatable migration:
+
+```bash
+pm2 stop shikshaarthi-auth
+cd /var/www/shikshaarthi/Backend/auth-service
+npm run migrate:google-id-index -- --dry-run
+npm run migrate:google-id-index
+pm2 restart shikshaarthi-auth --update-env
+```
+
+The migration checks for duplicate real Google IDs, changes only the `googleId_1`
+index, and preserves user documents and all other indexes. Do not run it until the
+dry run reports no duplicate Google IDs.

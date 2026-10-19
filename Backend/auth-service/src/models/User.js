@@ -339,9 +339,7 @@ const userSchema = new mongoose.Schema({
   },
   googleId: {
     type: String,
-    unique: true,
-    sparse: true, // Creates a unique index but allows multiple null values.
-    default: null
+    trim: true
   },
   lastLoginAt: { type: Date },
   lastSeenAt: { type: Date },
@@ -420,6 +418,14 @@ userSchema.virtual('isSubscribed').get(function() {
 
 // --- INDEXES (For query performance) ---
 userSchema.index({ email: 1 }, { unique: true });
+userSchema.index(
+  { googleId: 1 },
+  {
+    name: 'googleId_1',
+    unique: true,
+    partialFilterExpression: { googleId: { $type: 'string' } }
+  }
+);
 userSchema.index({ coins: -1 }); // For leaderboards
 userSchema.index({ role: 1 }); // For filtering admins/users
 userSchema.index({ collegeName: 1, district: 1 }); // For location-based queries

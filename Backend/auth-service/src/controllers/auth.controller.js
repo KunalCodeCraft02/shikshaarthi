@@ -278,7 +278,7 @@ exports.verifyOTPAndRegister = async (req, res) => {
             return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Verification code expired. Please request a new code.' });
         }
 
-        const isValidOTP = await OTPService.verifyOTP(tempUser.email, normalizedOTP, 'registration');
+        const isValidOTP = await OTPService.verifyOTP(tempUser.email, normalizedOTP, 'registration', false);
         if (!isValidOTP) {
             await db.collection('tempusers').updateOne({ _id: tempUser._id }, { $inc: { otpAttempts: 1 } });
             const attemptsLeft = 3 - (tempUser.otpAttempts + 1);
@@ -316,6 +316,29 @@ exports.verifyOTPAndRegister = async (req, res) => {
             // Other fields like `coins` and `subscription` will use schema defaults
         });
 
+        let otpConsumed = false;
+        try {
+            otpConsumed = await OTPService.consumeOTP(tempUser.email, normalizedOTP, 'registration');
+        } catch (consumeError) {
+            logger.error('[AuthService] Registration OTP cleanup failed after user creation:', {
+                message: consumeError.message,
+                userId: newUser._id.toString()
+            });
+        }
+        if (!otpConsumed) {
+            try {
+                await User.deleteOne({ _id: newUser._id });
+            } catch (rollbackError) {
+                logger.error('[AuthService] Failed to roll back user after OTP cleanup failure:', {
+                    message: rollbackError.message,
+                    userId: newUser._id.toString()
+                });
+            }
+            return res.status(StatusCodes.CONFLICT).json({
+                error: 'Verification code is no longer valid. Please request a new code.'
+            });
+        }
+
         const tokenPayload = { userId: newUser._id, email: newUser.email, role: newUser.role };
         const tokens = TokenService.generateTokenPair(tokenPayload);
         
@@ -335,8 +358,14 @@ exports.verifyOTPAndRegister = async (req, res) => {
         });
     } catch (error) {
         logger.error('Verification and registration error:', error);
-        if (error.code === 11000) { // Handle duplicate email error from Mongoose
-             return res.status(StatusCodes.CONFLICT).json({ error: 'Email already registered.' });
+        if (error.code === 11000) {
+             const duplicateField = Object.keys(error.keyPattern || {})[0];
+             const message = duplicateField === 'email'
+                 ? 'Email already registered.'
+                 : duplicateField === 'googleId'
+                     ? 'This Google account is already registered.'
+                     : 'Registration conflicts with an existing account.';
+             return res.status(StatusCodes.CONFLICT).json({ error: message });
         }
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Registration failed' });
     }
@@ -1944,8 +1973,6 @@ exports.getCoinRedemptionHistory = async (req, res) => {
     }
   };
   
-
-
 
 
 
