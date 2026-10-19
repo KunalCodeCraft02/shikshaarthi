@@ -7,7 +7,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const { createProxyMiddleware, fixRequestBody } = require('http-proxy-middleware');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 const { authenticateRequest } = require('./middleware/auth.middleware');
 
 const app = express();
@@ -67,9 +67,6 @@ app.use(helmet({
 }));
 
 app.use(morgan('combined'));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
 // Handle preflight OPTIONS requests BEFORE auth middleware
 app.options('*', (req, res) => {
   const origin = req.headers.origin;
@@ -125,9 +122,6 @@ const createProxyOptions = (target, serviceName) => ({
       proxyReq.setHeader('authorization', req.headers.authorization);
     }
 
-    // express.json() consumes the request stream before the proxy sees it.
-    // Re-stream the parsed body so POST/PUT/PATCH requests reach the service.
-    fixRequestBody(proxyReq, req);
   },
   
   onProxyRes: (proxyRes, req, res) => {
